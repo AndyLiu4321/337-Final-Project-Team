@@ -1,0 +1,36 @@
+html, body{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color:white;
+}
+
+#sidebar{
+    font-family: 'Rubik', sans-serif;
+    position: fixed;
+    top: 0;
+    width: 30%;
+    height: 100%;
+    bottom: 0;
+    background-color:lightgray;
+    z-index: 888;
+    text-align: center;
+    display: block;
+}
+
+.setting{
+    display: block;
+    width: 90%;
+    margin: auto;
+    padding: 15px;
+    font-size: medium;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 20px;
+    transition-duration: 0.4s;
+    border: 0;
+}
+
+button:hover {
+    background-color: grey;
+}

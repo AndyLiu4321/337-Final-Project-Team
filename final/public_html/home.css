@@ -1,0 +1,132 @@
+html, body{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #D7DBDD;
+}
+
+#header{
+    position: fixed;
+    width: 100%;
+    height: 60px;
+    text-align: center;
+    background-color: #8E44AD;
+    z-index: 999;
+    text-overflow: ellipsis;
+}
+
+h1{
+    margin: 10px;
+    font-family: 'Rubik', sans-serif;
+}
+
+#help{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#sidebar{
+    font-family: 'Rubik', sans-serif;
+    position: fixed;
+    top: 60px;
+    width: 20%;
+    height: 100%;
+    bottom: 0;
+    background-color:white;
+    z-index: 888;
+    text-align: center;
+}
+
+#username{
+    margin-left: 10px;
+    margin-right: 10px;
+    padding: 10px;
+    word-wrap: break-word;
+}
+
+#pfp{
+    width: 70px;
+    height: 70px;
+    border-radius: 50px;
+}
+
+#sidebarButtons{
+    width: 100%;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+#profileLink{
+    display: block;
+    margin: 10px;
+    color: black;
+}
+
+#DMLink{
+    display: block;
+    margin: 10px;
+    color: black;
+}
+
+#createPost{
+    color: black;
+}
+
+#photoPosts{
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    margin-left: 15px;
+    top: 60px;
+    width: 50%;
+    height: 100% - 60px;
+    overflow-y: auto;
+}
+
+.photoPost{
+    background-color: white;
+    margin-top: 15px;
+    height: 80%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#textPosts{
+    position: absolute;
+    bottom: 0;
+    left: 70%;
+    margin-left: 30px;
+    right: 15px;
+    top: 60px;
+    width: calc(30% - 45px);
+    height: calc(100% - 60px);
+    overflow-y: auto;
+}
+
+.textPost{
+    background-color: white;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.postPFP{
+    float: left;
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+}
+
+h3{
+    margin-top: 10px;
+    font-family: 'Rubik', sans-serif;
+}
+
+#noPost{
+    text-align: center;
+}
+
