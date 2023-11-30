@@ -2,18 +2,20 @@ var imageInput = document.getElementById('imageInput')
 var postTextbox = document.getElementById('postTextbox')
 var cancel = document.getElementById('cancel')
 var post = document.getElementById('postButton')
+var postForm = document.getElementById('postForm')
 
-function createPost(){
+
+
+function createPost(event){
+    event.preventDefault()
     n = decodeURIComponent(document.cookie).split('=j:')
     username =  JSON.parse(n[1]).username
-    postInformation = {user: username, media: imageInput.value, text: postTextbox.value, likes: 0}
+    const formData = new FormData(postForm)
+    formData.append('user', username)
     let url = `http://localhost:80/home/posts/create/`
     fetch((url), {
         method: 'POST',
-        headers: {
-        "Content-Type": "application/json"
-        },
-        body: JSON.stringify(postInformation)
+        body: formData
         })
         .then((response) => {
             return response.text();
@@ -27,15 +29,13 @@ function createPost(){
             }
             else{
             console.log(information)
-            }
             window.location.href = 'home.html'
+            }
         })
         .catch((error) => {
             alert('THERE WAS A PROBLEM');
             console.log(error);
-        });
-}
-
+});}
 
 cancel.onclick = () => {window.location.href = 'http://localhost:80/home.html'}
 post.onclick = createPost

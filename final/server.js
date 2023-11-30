@@ -14,6 +14,18 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 app.use(bodyparser.json())
 app.use(cookieParser());
 
+const multer = require('multer');
+var storage = multer.diskStorage(
+    {
+        destination: './public_html/uploads/images/',
+        filename: function ( req, file, cb ) {
+            cb( null, file.originalname);
+        }
+    }
+);
+
+var upload = multer( { storage: storage } );
+
 let sessions = {};
 
 function addSession(username) {
@@ -41,7 +53,7 @@ function removeSessions() {
   let usernames = Object.keys(sessions);
   for (let i = 0; i < usernames.length; i++) {
     let last = sessions[usernames[i]].time;
-    if (last + 2000000 < now) {
+    if (last + (60000 * 10) < now) {
       delete sessions[usernames[i]];
     }
   }
@@ -60,6 +72,10 @@ function authenticate(req, res, next) {
     let c = req.cookies.login;
     console.log('auth request:');
     console.log(req.cookies);
+    if (!c) {
+        // new
+        return res.redirect('/index.html');
+    }
     if (c != undefined) {
       if (sessions[c.username] != undefined && 
         sessions[c.username].id == c.sessionID) {
@@ -105,7 +121,7 @@ var postSchema = new Schema({
     user: String,
     media: String,
     text: String,
-    likes: Number
+    likes: Array
 })
 var Post = mongoose.model('Post', postSchema)
 
@@ -129,7 +145,7 @@ app.post('/home/login/', (req, res) =>{
         if (user == null ){
             res.send('No User')
         }
-        if (user.hash != crypto
+        else if (user.hash != crypto
             .createHash('sha256')
             .update(req.body.password + user.salt)
             .digest('hex')){
@@ -139,7 +155,7 @@ app.post('/home/login/', (req, res) =>{
             let sid = addSession(req.body.username);  
             res.cookie("login", 
             {username: req.body.username, sessionID: sid}, 
-            {maxAge: 60000 * 2 });
+            {maxAge: 60000 * 10});
             res.send('Success')
         }
     })
@@ -180,8 +196,7 @@ app.post('/home/adduser/', (req, res) => {
     .catch((error) => {res.send("error")})
 });
 
-app.post('/home/posts/create/', (req, res) => {
-    console.log(req.body)
+app.post('/home/posts/create/', upload.single('photo'), (req, res) => {
     let p = User.find({username: req.body.user}).exec();
     p.then((user) => {
         if (user.length <= 0){
@@ -191,38 +206,359 @@ app.post('/home/posts/create/', (req, res) => {
             res.send('No Text')
         }
         else {
-            var post = new Post({
-                user: req.body.user,
-                media: req.body.media,
-                text: req.body.text,
-                likes: req.body.likes
-        });
+            if (!req.file) {
+                var post = new Post({
+                    user: req.body.user,
+                    media: '',
+                    text: req.body.text,
+                    likes: req.body.likes});
+            }
+            else{
+                var post = new Post({
+                    user: req.body.user,
+                    media: req.file.originalname,
+                    text: req.body.text,
+                    likes: req.body.likes});
+            }
         post.save()
         .then(() => {res.send('OK')})
     }
     })
-    .catch((error) => {res.send("error")})
+    .catch((error) => {console.log(error)})
 });
 
-app.get('/home/get/posts/', (req, res) => {
+app.get('/home/get/posts/text/', (req, res) => {
+    pfp = "imgs/blank-profile-picture-973460_960_720.webp"
     textPosts = ''
-    let p = Post.find({user: req.cookies.login.username}).exec();
+    let p = Post.find({}).exec();
     p.then((posts) => {
         for (i = 0; i < posts.length; i++){
             if (posts[i].media == ''){
+                stat = 'Like'
+                if(posts[i].likes.includes(req.cookies.login.username)){
+                    stat = 'Unlike'
+                }
+                let p2 = User.findOne({username: posts[i].user}).exec()
+                p2.then((user) =>{
+                    console.log(user.pfp)
+                    if (user.pfp != "blank-profile-picture-973460_960_720.webp"){
+                        pfp = `uploads/images/${user.pfp}`
+                    }
+                })
                 textPosts += `<div class="textPost">
-                <img src="imgs/blank-profile-picture-973460_960_720.webp" 
+                <img src="${pfp}" 
                 alt="pfp" class="postPFP">
                 <h3>${posts[i].user}</h3>
                 <hr>
-                <p>${posts[i].text}</p>
-                <p>Likes: ${posts[i].likes}</p>
+                <p><b>${posts[i].user}: </b>${posts[i].text}</p>
+                <p id='likes${posts[i]._id}'>Likes: ${posts[i].likes.length}</p>
+                <button id='likeButton${posts[i]._id}' onclick = "like('${posts[i]._id}')">${stat}</button>
                 </div>`
         }}
         res.send(JSON.stringify(textPosts))
     })
     .catch((error) => {res.send("error")})
 });
+
+app.get('/home/get/posts/media/', (req, res) => {
+    mediaPosts = ''
+    let p = Post.find({}).exec();
+    p.then((posts) => {
+        for (i = 0; i < posts.length; i++){
+            if (posts[i].media != ''){
+                stat = 'Like'
+                if(posts[i].likes.includes(req.cookies.login.username)){
+                    stat = 'Unlike'
+                }
+                mediaPosts += `<div class="mediaPost">
+                <img src="imgs/blank-profile-picture-973460_960_720.webp" 
+                alt="pfp" class="postPFP">
+                <h3>${posts[i].user}</h3>
+                <hr>
+                <img src="uploads/images/${posts[i].media}" alt="Image Preview" class='postMedia'>
+                <p><b>${posts[i].user}: </b>${posts[i].text}</p>
+                <p id='likes${posts[i]._id}'>Likes: ${posts[i].likes.length}</p>
+                <button id='likeButton${posts[i]._id}' onclick = "like('${posts[i]._id}')">${stat}</button>
+                </div>`
+                console.log(posts[i])
+        }}
+        res.send(JSON.stringify(mediaPosts))
+    })
+    .catch((error) => {res.send("error")})
+});
+
+app.get('/profile/get/posts/text/', (req, res) => {
+    textPosts = ''
+    let p = Post.find({user: req.cookies.login.username}).exec();
+    p.then((posts) => {
+        for (i = 0; i < posts.length; i++){
+            console.log(posts[i].likes.length)
+            if (posts[i].media == ''){
+                stat = 'Like'
+                if(posts[i].likes.includes(req.cookies.login.username)){
+                    stat = 'Unlike'
+                }
+                textPosts += `<div class="textPost">
+                <img src="imgs/blank-profile-picture-973460_960_720.webp" 
+                alt="pfp" class="postPFP">
+                <h3>${posts[i].user}</h3>
+                <hr>
+                <p><b>${posts[i].user}: </b>${posts[i].text}</p>
+                <p id='likes${posts[i]._id}'>Likes: ${posts[i].likes.length}</p>
+                <button id='likeButton${posts[i]._id}' onclick = "like('${posts[i]._id}')">${stat}</button>
+                </div>`
+        }}
+        res.send(JSON.stringify(textPosts))
+    })
+    .catch((error) => {res.send("error")})
+});
+
+app.get('/profile/get/posts/media/', (req, res) => {
+    mediaPosts = ''
+    let p = Post.find({user: req.cookies.login.username}).exec();
+    p.then((posts) => {
+        for (i = 0; i < posts.length; i++){
+            if (posts[i].media != ''){
+                stat = 'Like'
+                if(posts[i].likes.includes(req.cookies.login.username)){
+                    stat = 'Unlike'
+                }
+                mediaPosts += `<div class="mediaPost">
+                <img src="imgs/blank-profile-picture-973460_960_720.webp" 
+                alt="pfp" class="postPFP">
+                <h3>${posts[i].user}</h3>
+                <hr>
+                <img src="uploads/images/${posts[i].media}" alt="Image Preview" class='postMedia'>
+                <p><b>${posts[i].user}: </b>${posts[i].text}</p>
+                <p id='likes${posts[i]._id}'>Likes: ${posts[i].likes.length}</p>
+                <button id='likeButton${posts[i]._id}' onclick = "like('${posts[i]._id}')">${stat}</button>
+                </div>`
+                console.log(posts[i])
+        }}
+        res.send(JSON.stringify(mediaPosts))
+    })
+    .catch((error) => {res.send("error")})
+});
+
+app.get('/profile/get/posts/number/', (req, res) => {
+    let p = Post.find({user: req.cookies.login.username}).exec();
+    p.then((posts) => {
+        res.send(JSON.stringify(posts.length))
+    })
+    .catch((error) => {res.send("error")})
+});
+
+app.get('/profile/get/bio/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        res.send(JSON.stringify(user.bio))
+    })
+    .catch((error) => {res.send("error")})
+});
+
+app.get('/profile/get/likes/', (req, res) => {
+    let p = Post.find({user: req.cookies.login.username}).exec();
+    p.then((posts) => {
+        likes = 0
+        for (i = 0; i < posts.length; i++){
+            likes += posts[i].likes.length
+        }
+        res.send(JSON.stringify(likes))
+    })
+    .catch((error) => {res.send("error")})
+});
+
+app.post('/home/like/', (req, res) => {
+    let p = Post.findOne({_id: req.body.postID}).exec();
+    p.then((post) => {
+        if (post.likes.includes(req.cookies.login.username)){
+            post.likes.pop(req.cookies.login.username)
+            console.log(post)
+            post.save()
+            res.json(['Already Liked', post.likes.length.toString()])
+        }
+        else{
+            post.likes.push(req.cookies.login.username)
+            console.log(post)
+            post.save()
+            res.json(['Liked', post.likes.length.toString()])
+        }
+    })
+    .catch((error) => {
+        console.log(error)
+        res.send("error")
+    })
+});
+
+app.post('/settings/change/password/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        let salt = user.salt;
+        let hash = crypto
+        .createHash('sha256')
+        .update(req.body.password + salt)
+        .digest('hex')
+        if (hash == user.hash){
+            res.send('passwords are the same')
+        }
+        else{
+            user.hash = hash
+            user.save()
+            res.send('password changed')
+        }
+        })
+    .catch((error) => {
+        console.log(error)
+        res.send("error")
+    })
+})
+
+app.post('/settings/change/bio/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        user.bio = req.body.bio
+        user.save()
+        res.send('bio changed')
+        })
+    .catch((error) => {
+        console.log(error)
+        res.send("error")
+    })
+})
+
+app.post('/settings/change/pfp/', upload.single('photo'), async (req, res) => {
+    let p = User.findOne({username: req.body.user}).exec();
+    p.then(async (user) => {
+        console.log(req.file)
+        if (!req.file) {
+            res.send('no image')
+        }
+        else{
+            user.pfp = req.file.originalname
+            res.send('pfp updated')
+        }
+        await user.save()
+    })
+    .catch((error) => {console.log(error)})
+});
+
+app.get('/profile/get/pfp/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        res.send(JSON.stringify(user.pfp))
+    })
+    .catch((error) => {res.send("error")})
+});
+
+/*app.post('/settings/change/username/', (req, res) => {
+    let p = User.find({username: req.body.username}).exec();
+    p.then((user) => {
+        if (user.length > 0){
+            res.send('Username Taken')
+        }
+        else{
+            let p2 = User.findOne({username: req.cookies.login.username}).exec()
+            p2.then((user) =>{
+                oldUsername = user.username
+                user.username = req.body.username
+                user.save()
+                let p3 = Post.find({user: oldUsername}).exec();
+                p3.then((posts) => {
+                    for (i = 0; i < posts.length; i++){
+                        posts[i].user = req.body.username
+                        posts[i].save()
+                    }
+                })
+            })
+            res.send('Username Changed!')
+        }
+    })
+    .catch((error) => {
+        console.log(error)
+        res.send("error")
+    })
+});*/
+
+
+app.get('/get-last-messages', (req, res) => {
+    const currentUser = req.cookies.login.username;
+    
+    User.findOne({ username: currentUser }, 'messageThread')
+        .then(user => {
+            if (!user) {
+                return res.status(404).send('User not found');
+            }
+
+            let conversations = {};
+            user.messageThread.forEach(msg => {
+                if (msg.sender !== currentUser) {
+                    if (!conversations[msg.sender] || new Date(conversations[msg.sender].timestamp) < new Date(msg.timestamp)) {
+                        conversations[msg.sender] = msg;
+                    }
+                }
+            });
+
+            let result = [];
+            for (let otherUser in conversations) {
+                result.push({ otherUser: otherUser, lastMessage: conversations[otherUser] });
+            }
+
+            res.json(result);
+        })
+        .catch(err => res.status(500).send('Error fetching messages'));
+});
+
+
+app.post('/send-message', (req, res) => {
+    const sender = req.cookies.login.username;
+    const { recipient, content } = req.body;
+
+    if (!recipient || !content) {
+        return res.status(400).send('Recipient and content are required');
+    }
+    //containing message objects
+    const message = {
+        sender: sender,
+        content: content,
+        timestamp: new Date()
+    };
+
+    // Add the message
+    User.updateOne({ username: sender }, { $push: { messageThread: message }})
+        .then(() => User.updateOne({ username: recipient }, { $push: { messageThread: message }}))
+        .then(() => res.json({ message: 'Message sent' }))
+        .catch(err => res.status(500).send('Error sending message'));
+});
+
+app.get('/get-conversation/:otherUser', (req, res) => {
+    const currentUser = req.cookies.login.username; 
+    const otherUser = req.params.otherUser;
+    if (currentUser === otherUser) {
+        return res.status(400).send('Cannot search for conversations with yourself');
+    }
+    const currentUserMessages = User.findOne({ username: currentUser }, 'messageThread').exec();
+    const otherUserMessages = User.findOne({ username: otherUser }, 'messageThread').exec();
+
+    Promise.all([currentUserMessages, otherUserMessages])
+        .then(([currentUserData, otherUserData]) => {
+            if (!currentUserData || !otherUserData) {
+                return res.status(404).send('One or both users not found');
+            }
+            // Filter messages from current user's data
+            const currentUserConversation = currentUserData.messageThread.filter(msg => 
+                msg.sender === otherUser || msg.recipient === otherUser);
+            // Filter messages from other user's data
+            const otherUserConversation = otherUserData.messageThread.filter(msg => 
+                msg.sender === currentUser || msg.recipient === currentUser);
+            // Combine and sort the conversations
+            const combinedConversation = currentUserConversation.concat(otherUserConversation);
+            combinedConversation.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+            res.json(combinedConversation);
+        })
+        .catch(err => res.status(500).send(console.error(err)));
+});
+
 
 
 app.listen(port, () =>

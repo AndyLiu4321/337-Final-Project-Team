@@ -48,3 +48,7 @@ html, body{
     top: 20px;
     right: 15px;
 }
+.timestamp {
+    font-size: small;
+    color: gray;
+}

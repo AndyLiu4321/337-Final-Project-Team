@@ -66,3 +66,8 @@ html, body{
 #textbox{
     margin-top: 20px;
 }
+
+.timestamp {
+    font-size: small;
+    color: gray;
+}

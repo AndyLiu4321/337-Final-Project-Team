@@ -76,7 +76,7 @@ h1{
     color: black;
 }
 
-#photoPosts{
+#mediaPosts{
     position: absolute;
     bottom: 0;
     left: 40%;
@@ -87,13 +87,12 @@ h1{
     overflow-y: auto;
 }
 
-.photoPost{
+.mediaPost{
     background-color: white;
     margin-top: 15px;
-    height: 80%;
-    border-radius: 10px;
-    text-align: center;
     margin-bottom: 15px;
+    padding: 20px;
+    border-radius: 10px;
 }
 
 #textPosts{
