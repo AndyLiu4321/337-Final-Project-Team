@@ -1,20 +1,29 @@
 var backButton = document.getElementById('backButton')
-var changeUsernameButton = document.getElementById('changeUsername')
+var addInterestsButton = document.getElementById('addInterests')
+var removeInterestsButton = document.getElementById('removeInterests')
 var changePasswordButton = document.getElementById('changePassword')
-var changeTheme = document.getElementById('changeTheme')
+var changeThemeButton = document.getElementById('changeTheme')
 var changepfpButton = document.getElementById('changepfp')
 var editBioButton = document.getElementById('editBioButton')
 var backButton = document.getElementById('backButton')
 var settingsDiv = document.getElementById('settingsDiv')
-var changeUsernameInnerButton = document.getElementById('changeUsernameInnerButton')
+var addInterestInnerButton = document.getElementById('addInterestInnerButton')
+var removeInterestInnerButton = document.getElementById('removeInterestInnerButton')
 var changePasswordInnerButton = document.getElementById('changePasswordInnerButton')
 
 
-changeUsernameButton.onclick = () =>{
-    settingsDiv.innerHTML = `<h2>Change Username</h2>
-    <h3 class="innerSetting">Enter new Username:</h3>
-    <input type="text" class="innerSetting" id="changeUsernameInput">
-    <button class="innerSetting" id="changeUsernameInnerButton">Change Username</button>`
+addInterestsButton.onclick = () =>{
+    settingsDiv.innerHTML = `<h2>Add Interests</h2>
+    <h3 class="innerSetting">Enter new Interest:</h3>
+    <input type="text" class="innerSetting" id="addInterestInput">
+    <button class="innerSetting" id="addInterestInnerButton">Add Interest</button>`
+}
+
+removeInterestsButton.onclick = () =>{
+    settingsDiv.innerHTML = `<h2>Remove Interests</h2>
+    <h3 class="innerSetting">Which interest would you like to remove?</h3>
+    <input type="text" class="innerSetting" id="removeInterestInput">
+    <button class="innerSetting" id="removeInterestInnerButton">Remove</button>`
 }
 
 changePasswordButton.onclick = () =>{
@@ -27,7 +36,7 @@ changePasswordButton.onclick = () =>{
     <div id="errorChangePassword"></div>`
 }
 
-changeTheme.onclick = () =>{
+changeThemeButton.onclick = () =>{
     settingsDiv.innerHTML = `<h2>Change Theme</h2>
     <h3 class="innerSetting">Choose Theme:</h3>
     <input type="radio" id="lightTheme" name="theme" value="light">
@@ -53,13 +62,114 @@ editBio.onclick = () =>{
     `
 }
 
+function addInterest(){
+    info = {interest: addInterestInput.value}
+    let url = 'http://localhost:80/settings/add/interest/'
+        fetch((url), {
+            method: 'POST',
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify(info)
+            })
+            .then((response) => {
+                alert('Interest Added!')
+            })
+            .catch((error) => {
+                console.log('THERE WAS A PROBLEM');
+                console.log(error);
+            });
+}
+document.addEventListener('click', (event) => {
+    if (event.target.id === 'addInterestInnerButton') {
+        const addInterestInput = document.getElementById('addInterestInput');
+        if (addInterestInput) {
+            // Your logic here, for example, calling the changeUsername function
+            addInterest();
+        } else {
+            console.error('addInterest not found');
+        }
+    }
+});
+
+function removeInterest(){
+    info = {interest: removeInterestInput.value}
+    let url = 'http://localhost:80/settings/remove/interest/'
+        fetch((url), {
+            method: 'POST',
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify(info)
+            })
+            .then((response) => {
+                return response.text()
+            })
+            .then((text) =>{
+                if (text == 'removed'){
+                    alert('Interest removed!')
+                }
+                else{
+                    alert('Interest not found')
+                }
+            })
+            .catch((error) => {
+                console.log('THERE WAS A PROBLEM');
+                console.log(error);
+            });
+}
+document.addEventListener('click', (event) => {
+    if (event.target.id === 'removeInterestInnerButton') {
+        const removeInterestInput = document.getElementById('removeInterestInput');
+        if (removeInterestInput) {
+            // Your logic here, for example, calling the changeUsername function
+            removeInterest();
+        } else {
+            console.error('removeInterest not found');
+        }
+    }
+});
+
+document.addEventListener('click', (event) => {
+    if (event.target.id === 'darkTheme') {
+        changeTheme('dark')
+        //document.body.classList.remove('light-mode'); 
+       // document.body.classList.add('dark-mode');
+    }
+    if (event.target.id === 'lightTheme') {
+        changeTheme('light')
+      //  document.body.classList.remove('dark-mode'); 
+     //   document.body.classList.add('light-mode'); 
+    }
+});
+
+function changeTheme(theme){
+    info = {theme: theme}
+    let url = 'http://localhost:80/settings/change/theme/'
+        fetch((url), {
+            method: 'POST',
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify(info)
+            })
+            .then((response) => {
+                return response.text()
+            })
+            .then((message) => {
+                console.log(message)
+            })
+            .catch((error) => {
+                console.log('THERE WAS A PROBLEM');
+                console.log(error);
+            });
+}
+
 document.addEventListener('click', (event) => {
     if (event.target.id === 'changePfpInnerButton') {
         // Check if changeUsernameInput exists
         const image = document.getElementById('imageInput');
         if (image) {
-            alert('Here')
-            // Your logic here, for example, calling the changeUsername function
             changePFP(event);
         } else {
             console.error('image not found');
@@ -74,7 +184,6 @@ function changePFP(event){
     username =  JSON.parse(n[1]).username
     const formData = new FormData(changePfpForm)
     formData.append('user', username)
-    console.log(formData)
     let url = `http://localhost:80/settings/change/pfp/`
     fetch((url), {
         method: 'POST',
@@ -104,7 +213,6 @@ document.addEventListener('click', (event) => {
         // Check if changeUsernameInput exists
         const bio = document.getElementById('bio');
         if (bio) {
-            // Your logic here, for example, calling the changeUsername function
             changeBio();
         } else {
             console.error('bio not found');
@@ -192,38 +300,3 @@ document.addEventListener('click', (event) => {
 }});
 
 backButton.onclick = () => {window.location.href = 'http://localhost:80/profile.html'}
-
-/*function changeUsername(){
-    info = {username: changeUsernameInput.value}
-    let url = 'http://localhost:80/settings/change/username/'
-        fetch((url), {
-            method: 'POST',
-            headers: {
-            "Content-Type": "application/json"
-            },
-            body: JSON.stringify(info)
-            })
-            .then((response) => {
-                return response.text()
-            })
-            .then((message) => {
-                console.log(message)
-            })
-            .catch((error) => {
-                console.log('THERE WAS A PROBLEM');
-                console.log(error);
-            });
-}
-document.addEventListener('click', (event) => {
-    if (event.target.id === 'changeUsernameInnerButton') {
-        // Check if changeUsernameInput exists
-        const changeUsernameInput = document.getElementById('changeUsernameInput');
-
-        if (changeUsernameInput) {
-            // Your logic here, for example, calling the changeUsername function
-            changeUsername();
-        } else {
-            console.error('changeUsernameInput not found');
-        }
-    }
-});*/

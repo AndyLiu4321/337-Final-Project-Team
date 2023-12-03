@@ -5,6 +5,14 @@ html, body{
     background-color: #D7DBDD;
 }
 
+body.dark-mode {
+    background-color: #333;
+}
+
+body.light-mode{
+    background-color: lightgray;
+}
+
 #header{
     position: fixed;
     width: 100%;
@@ -22,9 +30,19 @@ h1{
 
 #help{
     position: absolute;
-    top: 20px;
+    padding: 10px;
+    top: 10px;
     right: 20px;
+    background-color: lightgray;
+    transition-duration: 0.4s;
+    border: 1px;
+    border-radius: 5px;
 }
+
+#help:hover {
+    background-color: grey;
+    color: white;
+  }
 
 #sidebar{
     font-family: 'Rubik', sans-serif;
@@ -38,6 +56,14 @@ h1{
     text-align: center;
 }
 
+#sidebar.dark-mode{
+    background-color: gray;
+}
+
+#sidebar.light-mode{
+    background-color: white;
+}
+
 #username{
     margin-left: 10px;
     margin-right: 10px;
@@ -46,8 +72,8 @@ h1{
 }
 
 #pfp{
-    width: 70px;
-    height: 70px;
+    width: 100px;
+    height: 100px;
     border-radius: 50px;
 }
 
@@ -93,6 +119,13 @@ h1{
     border-radius: 10px;
 }
 
+.mediaPost.dark-mode{
+    background-color: gray;
+}
+
+.mediaPost.light-mode{
+    background-color: white;
+}
 
 #textPosts{
     position: absolute;
@@ -114,6 +147,14 @@ h1{
     border-radius: 10px;
 }
 
+.textPost.dark-mode{
+    background-color: gray;
+}
+
+.textPost.light-mode{
+    background-color: white;
+}
+
 .postPFP{
     float: left;
     margin-right: 10px;
@@ -127,7 +168,7 @@ h3{
     font-family: 'Rubik', sans-serif;
 }
 
-#noPost{
+.noPost{
     text-align: center;
 }
 
@@ -136,3 +177,19 @@ h3{
     width: 100%;
     height: auto;
 }
+
+#logOut{
+    position: absolute;
+    left: 20px;
+    top: 10px;
+    padding: 10px;
+    background-color: lightgray;
+    transition-duration: 0.4s;
+    border: 1px;
+    border-radius: 5px;
+}
+
+#logOut:hover {
+    background-color: grey;
+    color: white;
+  }

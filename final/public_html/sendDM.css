@@ -17,7 +17,17 @@ h1{
 #backButton{
     position: absolute;
     left: 15px;
-    top: 20px;
+    top: 10px;
+    padding: 10px;
+    background-color: lightgray;
+    transition-duration: 0.4s;
+    border: 1px;
+    border-radius: 5px;
+}
+
+#backButton:hover {
+    background-color: grey;
+    color: white;
 }
 
 html, body{
@@ -65,9 +75,19 @@ html, body{
 
 #textbox{
     margin-top: 20px;
+    vertical-align: bottom;
 }
 
 .timestamp {
     font-size: small;
     color: gray;
+}
+
+#userNameInput{
+    margin-top: 10px;
+    padding: 10px;
+}
+
+#sendButton{
+    vertical-align: bottom;
 }

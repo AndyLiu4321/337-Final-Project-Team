@@ -222,69 +222,97 @@ app.post('/home/posts/create/', upload.single('photo'), (req, res) => {
             }
         post.save()
         .then(() => {res.send('OK')})
-    }
-    })
+    }})
     .catch((error) => {console.log(error)})
 });
 
 app.get('/home/get/posts/text/', (req, res) => {
-    pfp = "imgs/blank-profile-picture-973460_960_720.webp"
-    textPosts = ''
-    let p = Post.find({}).exec();
+    let textPosts = '';
+    const p = Post.find({}).exec();
     p.then((posts) => {
-        for (i = 0; i < posts.length; i++){
-            if (posts[i].media == ''){
-                stat = 'Like'
-                if(posts[i].likes.includes(req.cookies.login.username)){
-                    stat = 'Unlike'
+        const promises = posts.map((post) => {
+            if (post.media === '') {
+                let stat = 'Like';
+                if (post.likes.includes(req.cookies.login.username)) {
+                    stat = 'Unlike';
                 }
-                let p2 = User.findOne({username: posts[i].user}).exec()
-                p2.then((user) =>{
-                    console.log(user.pfp)
-                    if (user.pfp != "blank-profile-picture-973460_960_720.webp"){
-                        pfp = `uploads/images/${user.pfp}`
-                    }
-                })
-                textPosts += `<div class="textPost">
-                <img src="${pfp}" 
-                alt="pfp" class="postPFP">
-                <h3>${posts[i].user}</h3>
-                <hr>
-                <p><b>${posts[i].user}: </b>${posts[i].text}</p>
-                <p id='likes${posts[i]._id}'>Likes: ${posts[i].likes.length}</p>
-                <button id='likeButton${posts[i]._id}' onclick = "like('${posts[i]._id}')">${stat}</button>
-                </div>`
-        }}
-        res.send(JSON.stringify(textPosts))
+                return User.findOne({ username: post.user }).exec()
+                    .then((user) => {
+                        let pfp = 'imgs/blank-profile-picture-973460_960_720.webp';
+                        if (user && user.pfp !== 'blank-profile-picture-973460_960_720.webp') {
+                            pfp = `uploads/images/${user.pfp}`;
+                        }
+                        return `<div class="textPost">
+                            <img src="${pfp}" alt="pfp" class="postPFP">
+                            <h3>${post.user}</h3>
+                            <hr>
+                            <p><b>${post.user || ''}: </b>${post.text}</p>
+                            <p id='likes${post._id}'>Likes: ${post.likes.length}</p>
+                            <button id='likeButton${post._id}' onclick="like('${post._id}')">${stat}</button>
+                        </div>`;
+                    });
+            }
+            return Promise.resolve(null);
+        });
+        Promise.all(promises)
+            .then((results) => {
+                textPosts = results.filter((result) => result !== null).join('');
+                res.send(JSON.stringify(textPosts));
+            })
+            .catch((error) => {
+                console.log(error);
+                res.send('error');
+            });
     })
-    .catch((error) => {res.send("error")})
+    .catch((error) => {
+        console.log(error);
+        res.send('error');
+    });
 });
 
 app.get('/home/get/posts/media/', (req, res) => {
     mediaPosts = ''
-    let p = Post.find({}).exec();
+    const p = Post.find({}).exec();
     p.then((posts) => {
-        for (i = 0; i < posts.length; i++){
-            if (posts[i].media != ''){
-                stat = 'Like'
-                if(posts[i].likes.includes(req.cookies.login.username)){
-                    stat = 'Unlike'
+        const promises = posts.map((post) => {
+            if (post.media != '') {
+                let stat = 'Like';
+                if (post.likes.includes(req.cookies.login.username)) {
+                    stat = 'Unlike';
                 }
-                mediaPosts += `<div class="mediaPost">
-                <img src="imgs/blank-profile-picture-973460_960_720.webp" 
-                alt="pfp" class="postPFP">
-                <h3>${posts[i].user}</h3>
-                <hr>
-                <img src="uploads/images/${posts[i].media}" alt="Image Preview" class='postMedia'>
-                <p><b>${posts[i].user}: </b>${posts[i].text}</p>
-                <p id='likes${posts[i]._id}'>Likes: ${posts[i].likes.length}</p>
-                <button id='likeButton${posts[i]._id}' onclick = "like('${posts[i]._id}')">${stat}</button>
-                </div>`
-                console.log(posts[i])
-        }}
-        res.send(JSON.stringify(mediaPosts))
+                return User.findOne({ username: post.user }).exec()
+                    .then((user) => {
+                        let pfp = 'imgs/blank-profile-picture-973460_960_720.webp';
+                        if (user && user.pfp !== 'blank-profile-picture-973460_960_720.webp') {
+                            pfp = `uploads/images/${user.pfp}`;
+                        }
+                        return `<div class="textPost">
+                            <img src="${pfp}" alt="pfp" class="postPFP">
+                            <h3>${post.user}</h3>
+                            <hr>
+                            <img src="uploads/images/${post.media}" alt="Image Preview" class='postMedia'></img>
+                            <p><b>${post.user || ''}: </b>${post.text}</p>
+                            <p id='likes${post._id}'>Likes: ${post.likes.length}</p>
+                            <button id='likeButton${post._id}' onclick="like('${post._id}')">${stat}</button>
+                        </div>`;
+                    });
+            }
+            return Promise.resolve(null);
+        });
+        Promise.all(promises)
+            .then((results) => {
+                textPosts = results.filter((result) => result !== null).join('');
+                res.send(JSON.stringify(textPosts));
+            })
+            .catch((error) => {
+                console.log(error);
+                res.send('error');
+            });
     })
-    .catch((error) => {res.send("error")})
+    .catch((error) => {
+        console.log(error);
+        res.send('error');
+    });
 });
 
 app.get('/profile/get/posts/text/', (req, res) => {
@@ -450,35 +478,83 @@ app.get('/profile/get/pfp/', (req, res) => {
     .catch((error) => {res.send("error")})
 });
 
-/*app.post('/settings/change/username/', (req, res) => {
-    let p = User.find({username: req.body.username}).exec();
+app.get('/home/logout/', (req, res) => {
+    delete sessions[req.cookies.login.username]
+    res.clearCookie('login', {username: req.cookies.login.username})
+    res.send('logged out')
+});
+
+app.post('/settings/change/theme/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
     p.then((user) => {
-        if (user.length > 0){
-            res.send('Username Taken')
+        if (user.theme == req.body.theme){
+            res.send('Same theme')
         }
         else{
-            let p2 = User.findOne({username: req.cookies.login.username}).exec()
-            p2.then((user) =>{
-                oldUsername = user.username
-                user.username = req.body.username
-                user.save()
-                let p3 = Post.find({user: oldUsername}).exec();
-                p3.then((posts) => {
-                    for (i = 0; i < posts.length; i++){
-                        posts[i].user = req.body.username
-                        posts[i].save()
-                    }
-                })
-            })
-            res.send('Username Changed!')
+            user.theme = req.body.theme
         }
-    })
+        user.save()
+        res.send('theme changed')
+        })
     .catch((error) => {
         console.log(error)
         res.send("error")
     })
-});*/
+})
 
+app.get('/get/theme/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        if (user.theme == 'dark'){
+            res.send('dark')
+        }
+        else if (user.theme == 'light' || user.theme == ''){
+            res.send('light')
+        }})
+    .catch((error) => {
+        console.log(error)
+        res.send("error")
+    })
+})
+
+app.post('/settings/add/interest/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        user.interests.push(req.body.interest)
+        user.save()
+        res.send('added')
+        })
+    .catch((error) => {
+        console.log(error)
+        res.send("error")
+    })
+});
+
+app.post('/settings/remove/interest/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        if (user.interests.includes(req.body.interest)){
+            user.interests.pop(req.body.interest)
+        user.save()
+        res.send('removed')
+        }
+        else{
+            res.send('No interest found')
+        }
+        })
+    .catch((error) => {
+        console.log(error)
+        res.send("error")
+    })
+});
+
+app.get('/profile/get/interests/', (req, res) => {
+    let p = User.findOne({username: req.cookies.login.username}).exec();
+    p.then((user) => {
+        res.json(user.interests)
+    })
+    .catch((error) => {res.send("error")})
+});
 
 app.get('/get-last-messages', (req, res) => {
     const currentUser = req.cookies.login.username;
@@ -558,7 +634,6 @@ app.get('/get-conversation/:otherUser', (req, res) => {
         })
         .catch(err => res.status(500).send(console.error(err)));
 });
-
 
 
 app.listen(port, () =>

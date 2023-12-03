@@ -9,6 +9,14 @@
     margin-bottom: 15px;
 }
 
+body.dark-mode {
+    background-color: #333;
+}
+
+body.light-mode{
+    background-color: lightgray;
+}
+
 h1{
     margin-top: 0;
     padding-top: 10px;
@@ -18,8 +26,18 @@ h1{
 #homeButton{
     position: absolute;
     left: 15px;
-    top: 20px;
+    top: 10px;
+    padding: 10px;
+    background-color: lightgray;
+    transition-duration: 0.4s;
+    border: 1px;
+    border-radius: 5px;
 }
+
+#homeButton:hover {
+    background-color: grey;
+    color: white;
+  }
 
 html, body{
     height: 100%;
@@ -45,10 +63,24 @@ html, body{
 
 #newMessage{
     position: absolute;
-    top: 20px;
+    top: 10px;
     right: 15px;
+    padding: 10px;
+    background-color: lightgray;
+    transition-duration: 0.4s;
+    border: 1px;
+    border-radius: 5px;
 }
+
+#newMessage:hover {
+    background-color: grey;
+    color: white;
+  }
 .timestamp {
     font-size: small;
     color: gray;
+}
+
+#messages{
+    text-align: center;
 }
